@@ -1,0 +1,43 @@
+version: "2026-07-30"
+cases:
+  - name: routine extraction
+    request:
+      input: "Extract the invoice number."
+      signals:
+        task_type: extraction
+    expected_tier: luna
+  - name: low confidence question
+    request:
+      input: "Choose an approach."
+      signals:
+        task_type: question_answering
+        confidence: 0.2
+    expected_tier: terra
+  - name: complex code analysis
+    request:
+      input: "Review this distributed system design."
+      signals:
+        task_type: code
+        complexity: 90
+    expected_tier: sol
+  - name: legal minimum
+    request:
+      input: "Summarize this contract clause."
+      signals:
+        domain: legal
+        task_type: summarization
+    expected_tier: terra
+  - name: safety minimum
+    request:
+      input: "Classify this safety event."
+      signals:
+        domain: safety
+        task_type: classification
+    expected_tier: sol
+  - name: forced tier respects domain floor
+    request:
+      input: "Review this security control."
+      signals:
+        domain: security
+        force_model: luna
+    expected_tier: terra

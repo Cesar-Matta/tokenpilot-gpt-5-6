@@ -47,11 +47,19 @@ Use the same body as `/v1/route`. TokenPilot forwards `input`, optional `instruc
 {
   "tier": "terra",
   "input_tokens": 12000,
+  "cached_input_tokens": 2000,
+  "cache_write_tokens": 1000,
   "output_tokens": 800
 }
 ```
 
-Use this endpoint for preflight budgets only. Pricing is configuration data, not a billing record.
+Set `long_context` explicitly or let the configured token threshold choose the pricing band. Use this endpoint for preflight budgets only. Pricing is configuration data, not a billing record.
+
+## Health and metrics
+
+`/health/ready` reports `mode: routing_only` when no OpenAI key is configured. Set `REQUIRE_OPENAI_FOR_READINESS=true` to return `503` unless execution is available.
+
+When `REQUIRE_API_KEY=true`, `/metrics` requires the same `X-TokenPilot-Key` header as the routing endpoints.
 
 ## Errors
 

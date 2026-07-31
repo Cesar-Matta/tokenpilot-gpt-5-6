@@ -45,6 +45,8 @@ def create_app(settings: Settings | None = None, executor: OpenAIExecutor | None
     async def lifespan(app: FastAPI):
         if settings.environment == "production" and not settings.require_api_key:
             raise RuntimeError("REQUIRE_API_KEY=true is required in production")
+        if settings.environment == "production" and not settings.api_keys:
+            raise RuntimeError("TOKENPILOT_API_KEYS must be configured in production")
         app.state.settings = settings
         app.state.executor = executor or OpenAIExecutor(settings)
         app.state.limiter = SlidingWindowRateLimiter(settings.request_rate_limit_per_minute)
@@ -77,10 +79,11 @@ def create_app(settings: Settings | None = None, executor: OpenAIExecutor | None
         try:
             response = await call_next(request)
         except Exception:
-            REQUESTS.labels(request.url.path, "500").inc()
+            REQUESTS.labels(_metric_route(request), "500").inc()
             raise
-        LATENCY.labels(request.url.path).observe(time.perf_counter() - started)
-        REQUESTS.labels(request.url.path, str(response.status_code)).inc()
+        metric_route = _metric_route(request)
+        LATENCY.labels(metric_route).observe(time.perf_counter() - started)
+        REQUESTS.labels(metric_route, str(response.status_code)).inc()
         logger.info(
             "request.completed",
             extra={
@@ -135,11 +138,27 @@ def create_app(settings: Settings | None = None, executor: OpenAIExecutor | None
         return {"status": "ok"}
 
     @app.get("/health/ready", tags=["health"])
-    async def readiness() -> dict[str, str]:
-        return {"status": "ready", "environment": settings.environment}
+    async def readiness() -> JSONResponse:
+        execution_ready = bool(settings.openai_api_key)
+        if settings.require_openai_for_readiness and not execution_ready:
+            return JSONResponse(
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                content={
+                    "status": "not_ready",
+                    "mode": "routing_only",
+                    "environment": settings.environment,
+                },
+            )
+        return JSONResponse(
+            content={
+                "status": "ready",
+                "mode": "execution" if execution_ready else "routing_only",
+                "environment": settings.environment,
+            }
+        )
 
     @app.get("/metrics", include_in_schema=False)
-    async def metrics() -> JSONResponse:
+    async def metrics(_: str = Depends(protected_client)) -> JSONResponse:
         return metrics_response()
 
     @app.get("/v1/models", tags=["routing"])
@@ -169,7 +188,14 @@ def create_app(settings: Settings | None = None, executor: OpenAIExecutor | None
     @app.post("/v1/estimate", tags=["routing"])
     async def estimate(request: EstimateRequest, _: str = Depends(protected_client)) -> dict:
         estimate_value = get_catalog().estimate(
-            request.tier, request.input_tokens, request.output_tokens
+            request.tier,
+            request.input_tokens,
+            request.output_tokens,
+            cached_input_tokens=request.cached_input_tokens,
+            cache_write_tokens=request.cache_write_tokens,
+            long_context=request.long_context
+            if request.long_context is not None
+            else request.input_tokens >= settings.long_context_token_threshold,
         )
         return {
             "tier": request.tier,
@@ -223,6 +249,12 @@ def _check_size(request: RouteRequest, settings: Settings) -> None:
             status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
             detail="Input exceeds configured size limit.",
         )
+
+
+def _metric_route(request: Request) -> str:
+    route = request.scope.get("route")
+    path = getattr(route, "path", None)
+    return path if isinstance(path, str) else "unmatched"
 
 
 app = create_app()

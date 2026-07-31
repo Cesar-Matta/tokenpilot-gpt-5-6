@@ -37,5 +37,6 @@ flowchart LR
 - Routing is deterministic to avoid a second paid model call and to make policy review possible.
 - Domain floors take precedence over caller model preferences. A legal request cannot be forced down to Luna, and safety requests default to Sol.
 - A client may set a cost cap. The router only chooses Luna as a budget fallback when that still satisfies the policy floor; otherwise execution rejects the request.
+- The per-request cap is checked again before each escalation. Monthly budgets require persistent external accounting.
 - The service does not claim to assess factual correctness. The `confidence` signal is supplied by the client or an upstream quality system and is treated conservatively.
 - The in-memory limiter is intentionally simple for a single replica. Use a shared rate limiter or API gateway before horizontally scaling.

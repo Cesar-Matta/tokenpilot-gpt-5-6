@@ -57,3 +57,31 @@ def test_max_cost_can_choose_luna_when_policy_allows() -> None:
     )
 
     assert decision.selected_tier is ModelTier.LUNA
+    assert decision.reasoning_effort == "low"
+
+
+def test_long_context_estimate_uses_long_pricing() -> None:
+    decision = decide_route(
+        RouteRequest(
+            input="Analyze this document.",
+            signals=RoutingSignals(context_tokens=2_000),
+        ),
+        Settings(long_context_token_threshold=1_000),
+    )
+
+    assert decision.estimated_cost.context_band == "long"
+
+
+def test_budget_does_not_silently_override_forced_model() -> None:
+    decision = decide_route(
+        RouteRequest(
+            input="Use the requested model.",
+            signals=RoutingSignals(force_model=ModelTier.SOL),
+            max_cost_usd=0.001,
+        ),
+        Settings(),
+    )
+
+    assert decision.selected_tier is ModelTier.SOL
+    assert decision.estimated_cost.estimated_usd > 0.001
+    assert "execution will be rejected" in decision.reasons[-1]

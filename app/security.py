@@ -5,6 +5,7 @@ from __future__ import annotations
 import secrets
 import time
 from collections import defaultdict, deque
+from hashlib import sha256
 
 from fastapi import HTTPException, Request, status
 
@@ -43,4 +44,4 @@ def authenticate(request: Request, api_key: str | None, settings: Settings) -> s
         secrets.compare_digest(api_key, known) for known in settings.api_keys
     ):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid API key.")
-    return f"key:{api_key[:8]}"
+    return f"key:{sha256(api_key.encode()).hexdigest()[:16]}"

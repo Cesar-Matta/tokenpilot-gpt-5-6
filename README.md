@@ -27,7 +27,7 @@ It is independent software and is not affiliated with, endorsed by, or sponsored
 | Terra | `gpt-5.6-terra` | Technical work, nuanced questions, uncertainty, and larger context |
 | Sol | `gpt-5.6-sol` | Critical, high-risk, or difficult reasoning workloads |
 
-The initial catalog uses OpenAI's published standard pricing from **2026-07-30**: Luna ($0.20 input / $1.20 output), Terra ($2.00 / $12.00), and Sol ($5.00 / $30.00) per million tokens. Review and update [`config/models.yaml`](config/models.yaml) before relying on estimates in a live environment. See the [official pricing page](https://developers.openai.com/api/docs/pricing).
+The versioned catalog uses OpenAI's published standard pricing from **2026-07-30**, including short- and long-context rates, cached input, cache writes, and output. Regional processing, non-standard service tiers, and tool fees are intentionally excluded. Review [`config/models.yaml`](config/models.yaml) before relying on estimates in a live environment. See the [official pricing page](https://developers.openai.com/api/docs/pricing).
 
 ## Quick start
 
@@ -80,7 +80,7 @@ curl -X POST http://localhost:8080/v1/responses \
 | `GET /health/ready` | Readiness probe |
 | `GET /metrics` | Prometheus metrics |
 
-Read the full [API reference](docs/api.md), [routing policy](docs/policies.md), [architecture](docs/architecture.md), [cost guide](docs/costs.md), and [deployment guide](docs/deployment.md).
+Read the full [API reference](docs/api.md), [routing policy](docs/policies.md), [architecture](docs/architecture.md), [cost guide](docs/costs.md), [evaluation guide](docs/evaluation.md), and [deployment guide](docs/deployment.md).
 
 ## Docker
 
@@ -108,8 +108,10 @@ Run before publishing:
 
 ```bash
 python scripts/public_release_check.py
+python scripts/run_routing_evals.py
 pytest
 ruff check .
+ruff format --check .
 ```
 
 The checker detects likely credentials, local paths, and disallowed private references. See [the public-release guide](docs/public-release.md).

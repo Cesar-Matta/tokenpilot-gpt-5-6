@@ -108,24 +108,30 @@ def decide_route(
         tier = forced
         reasons.append(f"Caller requested {signals.force_model.value}; domain floor was preserved.")
 
-    effort = request.reasoning_effort or (
-        "low" if tier is ModelTier.LUNA else "medium" if tier is ModelTier.TERRA else "high"
-    )
-    estimate = catalog.estimate(tier, input_tokens, _estimate_output_tokens(request, input_tokens))
+    output_tokens = _estimate_output_tokens(request, input_tokens)
+    long_context = input_tokens >= settings.long_context_token_threshold
+    estimate = catalog.estimate(tier, input_tokens, output_tokens, long_context=long_context)
     limit = (
         request.max_cost_usd
         if request.max_cost_usd is not None
-        else settings.default_monthly_budget_usd
+        else settings.default_request_budget_usd
     )
     if limit is not None and estimate.estimated_usd > limit:
-        cheapest = catalog.estimate(ModelTier.LUNA, input_tokens, estimate.output_tokens)
-        if minimum is ModelTier.LUNA and cheapest.estimated_usd <= limit:
+        cheapest = catalog.estimate(
+            ModelTier.LUNA, input_tokens, output_tokens, long_context=long_context
+        )
+        if (
+            minimum is ModelTier.LUNA
+            and signals.force_model is None
+            and cheapest.estimated_usd <= limit
+        ):
             tier = ModelTier.LUNA
             estimate = cheapest
             reasons.append("Budget cap selected the lowest compliant tier.")
         else:
             reasons.append("Estimated cost exceeds the supplied cap; execution will be rejected.")
 
+    effort = request.reasoning_effort or _default_effort(tier)
     return RouteDecision(
         selected_tier=tier,
         selected_model=catalog.model_id(tier),
@@ -151,3 +157,7 @@ def _estimate_output_tokens(request: RouteRequest, input_tokens: int) -> int:
     if request.signals.task_type.value in {"classification", "extraction"}:
         return min(500, max(100, input_tokens // 10))
     return min(4_000, max(500, input_tokens // 2))
+
+
+def _default_effort(tier: ModelTier) -> str:
+    return "low" if tier is ModelTier.LUNA else "medium" if tier is ModelTier.TERRA else "high"

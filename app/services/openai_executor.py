@@ -34,19 +34,15 @@ class OpenAIExecutor:
 
     async def execute(self, request: RouteRequest) -> ExecuteResponse:
         decision = decide_route(request, self.settings, self.catalog)
-        if (
-            request.max_cost_usd is not None
-            and decision.estimated_cost.estimated_usd > request.max_cost_usd
-        ):
-            raise BudgetExceededError("Estimated request cost exceeds max_cost_usd")
         tiers = [decision.selected_tier, *decision.escalation_path]
         last_error: Exception | None = None
         for attempts, tier in enumerate(tiers, start=1):
             attempt_decision = (
                 decision
                 if tier == decision.selected_tier
-                else self._decision_for_tier(decision, tier)
+                else self._decision_for_tier(decision, tier, request)
             )
+            self._enforce_budget(attempt_decision, request)
             try:
                 response = await self._client().responses.create(
                     model=attempt_decision.selected_model,
@@ -66,16 +62,26 @@ class OpenAIExecutor:
                 )
             except APIError as error:
                 last_error = error
-                if not self._is_transient(error) or tier == tiers[-1]:
+                if not self._can_escalate(error) or tier == tiers[-1]:
                     raise
         raise RuntimeError("Execution failed without a provider error") from last_error
 
-    def _decision_for_tier(self, decision: RouteDecision, tier: ModelTier) -> RouteDecision:
+    def _decision_for_tier(
+        self, decision: RouteDecision, tier: ModelTier, request: RouteRequest
+    ) -> RouteDecision:
+        estimate = self.catalog.estimate(
+            tier,
+            decision.estimated_cost.input_tokens,
+            decision.estimated_cost.output_tokens,
+            long_context=decision.estimated_cost.context_band == "long",
+        )
         return decision.model_copy(
             update={
                 "selected_tier": tier,
                 "selected_model": self.catalog.model_id(tier),
-                "reasoning_effort": "medium" if tier is ModelTier.TERRA else "high",
+                "reasoning_effort": request.reasoning_effort
+                or ("medium" if tier is ModelTier.TERRA else "high"),
+                "estimated_cost": estimate,
                 "reasons": [
                     *decision.reasons,
                     f"Escalated after a transient provider failure to {tier.value}.",
@@ -83,10 +89,24 @@ class OpenAIExecutor:
             }
         )
 
+    def _enforce_budget(self, decision: RouteDecision, request: RouteRequest) -> None:
+        limit = (
+            request.max_cost_usd
+            if request.max_cost_usd is not None
+            else self.settings.default_request_budget_usd
+        )
+        if limit is not None and decision.estimated_cost.estimated_usd > limit:
+            raise BudgetExceededError(
+                f"Estimated {decision.selected_tier.value} request cost "
+                f"(${decision.estimated_cost.estimated_usd:.8f}) exceeds the "
+                f"per-request cap (${limit:.8f})"
+            )
+
     @staticmethod
-    def _is_transient(error: APIError) -> bool:
+    def _can_escalate(error: APIError) -> bool:
         status_code = getattr(error, "status_code", None)
-        return status_code is None or status_code == 429 or status_code >= 500
+        # A 429 commonly applies across models, so a costlier model is not a safe retry strategy.
+        return status_code is None or status_code >= 500
 
     def _actual_cost(self, payload: dict[str, Any], tier: ModelTier) -> float | None:
         usage = payload.get("usage") or {}
@@ -94,4 +114,14 @@ class OpenAIExecutor:
         output_tokens = usage.get("output_tokens")
         if not isinstance(input_tokens, int) or not isinstance(output_tokens, int):
             return None
-        return self.catalog.estimate(tier, input_tokens, output_tokens).estimated_usd
+        details = usage.get("input_tokens_details") or {}
+        cached_tokens = details.get("cached_tokens", 0)
+        cache_write_tokens = details.get("cache_write_tokens", 0)
+        return self.catalog.estimate(
+            tier,
+            input_tokens,
+            output_tokens,
+            cached_input_tokens=cached_tokens if isinstance(cached_tokens, int) else 0,
+            cache_write_tokens=cache_write_tokens if isinstance(cache_write_tokens, int) else 0,
+            long_context=input_tokens >= self.settings.long_context_token_threshold,
+        ).estimated_usd

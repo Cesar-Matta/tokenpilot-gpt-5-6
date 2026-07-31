@@ -22,7 +22,7 @@ Use this skill to make routing decisions explainable, conservative, and measurab
 - Do not use an additional model only to classify routine requests unless evaluation data proves its benefit exceeds its cost.
 - Do not claim that a confidence signal proves factual correctness; use task-specific validation for that.
 - Do not silently downgrade high-risk work because of a budget cap. Reject or require an explicit human decision.
-- Retry only transient provider failures. Do not retry authentication, validation, safety, or irreversible action failures.
+- Escalate only after connection failures or provider `5xx` responses, and recheck the budget first. Do not escalate `429`, authentication, validation, safety, or irreversible action failures.
 - Keep API keys and raw sensitive prompts out of configuration, logs, examples, and evaluation fixtures.
 
 ## Repository integration

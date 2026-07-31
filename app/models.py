@@ -78,8 +78,12 @@ class RouteRequest(BaseModel):
 
 class CostEstimate(BaseModel):
     input_tokens: int = Field(ge=0)
+    cached_input_tokens: int = Field(default=0, ge=0)
+    cache_write_tokens: int = Field(default=0, ge=0)
     output_tokens: int = Field(ge=0)
     estimated_usd: float = Field(ge=0)
+    context_band: Literal["short", "long"]
+    service_tier: Literal["standard"] = "standard"
     pricing_version: str
 
 
@@ -113,5 +117,8 @@ class ErrorResponse(BaseModel):
 
 class EstimateRequest(BaseModel):
     input_tokens: int = Field(ge=0)
+    cached_input_tokens: int = Field(default=0, ge=0)
+    cache_write_tokens: int = Field(default=0, ge=0)
     output_tokens: int = Field(default=500, ge=0)
     tier: ModelTier = ModelTier.LUNA
+    long_context: bool | None = None

@@ -22,7 +22,8 @@ class Settings(BaseSettings):
     max_input_characters: int = Field(default=500_000, ge=1000)
     request_timeout_seconds: float = Field(default=90.0, ge=1.0, le=600.0)
     long_context_token_threshold: int = Field(default=128_000, ge=1_000)
-    default_monthly_budget_usd: float | None = Field(default=None, ge=0)
+    default_request_budget_usd: float | None = Field(default=None, ge=0)
+    require_openai_for_readiness: bool = False
     log_level: str = "INFO"
 
     @field_validator("environment")

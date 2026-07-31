@@ -7,8 +7,10 @@
 3. Set `REQUIRE_API_KEY=true` and a random `TOKENPILOT_API_KEYS` value in your secret manager.
 4. Set `OPENAI_API_KEY` only in the runtime secret manager.
 5. Restrict `ALLOWED_ORIGINS` to known browser clients, or leave it empty for server-to-server use.
-6. Put the service behind TLS, an ingress proxy, or an API gateway.
-7. Run a real health check, an authenticated `/v1/route` check, and a deliberately invalid-key check.
+6. Set `REQUIRE_OPENAI_FOR_READINESS=true` when the deployment must execute, not only route.
+7. Set a conservative `DEFAULT_REQUEST_BUDGET_USD` if every attempt needs a global ceiling.
+8. Put the service behind TLS, an ingress proxy, or an API gateway.
+9. Run a real health check, an authenticated `/v1/route` check, and a deliberately invalid-key check.
 
 ## Docker
 
@@ -38,7 +40,7 @@ Set Cloud Run authentication, network ingress, and secret access according to yo
 
 ## Observability
 
-Scrape `/metrics` with Prometheus. Alert on rising `5xx` responses, elevated latency, unexpected Sol usage, route mix changes, and budget trend anomalies. TokenPilot emits JSON request-completion logs without prompts, provider payloads, or credential values.
+Scrape `/metrics` with Prometheus and send `X-TokenPilot-Key` when API-key protection is enabled. Alert on rising `5xx` responses, elevated latency, unexpected Sol usage, route mix changes, and budget trend anomalies. TokenPilot emits JSON request-completion logs without prompts, provider payloads, or credential values. Unmatched URLs share one bounded metric label instead of exposing arbitrary paths.
 
 ## Scale-out note
 

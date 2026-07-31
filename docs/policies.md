@@ -28,10 +28,14 @@ All thresholds are versioned in [`config/policy.yaml`](../config/policy.yaml). T
 ## Fallback behavior
 
 1. A selected tier is called once.
-2. Only retryable provider failures (`429`, `5xx`, or a connection-level failure) can escalate.
-3. Escalation moves up at most two tiers and never down.
-4. Authentication, validation, safety refusal, and budget errors do not retry.
-5. The API returns the chosen tier, all reasons, and the number of attempts.
+2. A connection-level failure or `5xx` may escalate to the next configured tier.
+3. A `429` never escalates to a costlier model because the limit commonly applies across models.
+4. Escalation moves up at most two tiers and never down.
+5. Every candidate tier is costed and checked against the per-request budget before its call.
+6. Authentication, validation, safety refusal, rate-limit, and budget errors do not retry.
+7. The API returns the chosen tier, all reasons, and the number of attempts.
+
+A budget may downgrade an automatically selected general-domain tier to Luna. It never overrides an explicit `force_model` or a domain minimum; execution rejects those requests when their estimate exceeds the cap.
 
 Use application-level quality gates for semantic checks such as required fields, citations, source coverage, or domain review. Configure these upstream or extend `OpenAIExecutor` with a task-specific validator; do not pretend a generic confidence score proves correctness.
 
