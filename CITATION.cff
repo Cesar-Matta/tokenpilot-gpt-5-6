@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use TokenPilot in research or a public project, please cite it."
+title: "TokenPilot GPT-5.6"
+type: software
+version: 0.1.0
+license: Apache-2.0
+abstract: "An open-source smart model router for OpenAI GPT-5.6 Luna, Terra, and Sol."
+keywords:
+  - OpenAI
+  - GPT-5.6
+  - model routing
+  - cost optimization

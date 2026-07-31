@@ -1,0 +1,40 @@
+{
+  "name": "TokenPilot Route Decision",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "manual-trigger",
+      "name": "Manual Trigger",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [260, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://YOUR_TOKENPILOT_HOST/v1/route",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {"name": "X-TokenPilot-Key", "value": "REPLACE_WITH_CREDENTIAL"},
+            {"name": "Content-Type", "value": "application/json"}
+          ]
+        },
+        "sendBody": true,
+        "contentType": "raw",
+        "rawContentType": "application/json",
+        "body": "{\"input\":\"Summarize this text.\",\"signals\":{\"task_type\":\"summarization\",\"domain\":\"general\"},\"max_cost_usd\":0.02}"
+      },
+      "id": "tokenpilot-route",
+      "name": "TokenPilot Route",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [500, 300]
+    }
+  ],
+  "connections": {
+    "Manual Trigger": {"main": [[{"node": "TokenPilot Route", "type": "main", "index": 0}]]}
+  },
+  "active": false,
+  "settings": {}
+}

@@ -1,0 +1,21 @@
+version: "2026-07-30"
+currency: "USD"
+models:
+  luna:
+    id: "gpt-5.6-luna"
+    input_per_million: 0.20
+    output_per_million: 1.20
+    cached_input_per_million: 0.02
+    description: "Efficient, high-volume workloads."
+  terra:
+    id: "gpt-5.6-terra"
+    input_per_million: 2.00
+    output_per_million: 12.00
+    cached_input_per_million: 0.20
+    description: "Strong performance with a balanced cost profile."
+  sol:
+    id: "gpt-5.6-sol"
+    input_per_million: 5.00
+    output_per_million: 30.00
+    cached_input_per_million: 0.50
+    description: "Frontier capability for critical or difficult work."

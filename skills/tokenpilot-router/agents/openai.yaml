@@ -1,0 +1,4 @@
+interface:
+  display_name: "TokenPilot Router"
+  short_description: "Route OpenAI requests by cost and risk"
+  default_prompt: "Use $tokenpilot-router to design or operate a cost-aware OpenAI GPT-5.6 routing policy."

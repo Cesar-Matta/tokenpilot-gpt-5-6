@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tokenpilot-gpt-5-6"
+version = "0.1.0"
+description = "Open-source smart model routing for OpenAI GPT-5.6 Luna, Terra, and Sol."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "Apache-2.0" }
+authors = [{ name = "TokenPilot contributors" }]
+keywords = ["openai", "gpt-5-6", "model-router", "llm-router", "token-saver", "cost-optimization", "fastapi", "responses-api"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: Apache Software License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.12",
+  "Framework :: FastAPI",
+]
+dependencies = [
+  "fastapi>=0.115,<1",
+  "httpx>=0.28,<1",
+  "openai>=1.100,<3",
+  "prometheus-client>=0.21,<1",
+  "pydantic>=2.10,<3",
+  "pydantic-settings>=2.7,<3",
+  "PyYAML>=6.0,<7",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-asyncio>=0.25,<1",
+  "pytest-cov>=6.0,<7",
+  "ruff>=0.9,<1",
+]
+
+[project.urls]
+Homepage = "https://github.com/REPLACE_WITH_OWNER/tokenpilot-gpt-5-6"
+Documentation = "https://github.com/REPLACE_WITH_OWNER/tokenpilot-gpt-5-6#readme"
+Issues = "https://github.com/REPLACE_WITH_OWNER/tokenpilot-gpt-5-6/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "--strict-markers --cov=app --cov-report=term-missing"
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
