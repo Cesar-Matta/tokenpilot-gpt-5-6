@@ -40,8 +40,7 @@ Keep the preview factual. Do not use OpenAI logos or imply affiliation.
 
 ## Publishing checklist
 
-- Replace `REPLACE_WITH_OWNER` in badges and project URLs.
-- Add the description and topics above.
+- Repository description and topics are configured on the public GitHub repository.
 - Enable GitHub's dependency updates, secret scanning, and private vulnerability reporting where available.
 - Pin a concise README section explaining Luna, Terra, and Sol.
 - Link a release note to the routing-policy version and pricing catalog date.

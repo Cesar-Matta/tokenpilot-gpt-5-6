@@ -2,7 +2,7 @@
 
 > **Portable model-routing policy and optional API gateway for OpenAI GPT-5.6 Luna, Terra, and Sol.**
 
-[![CI](https://github.com/REPLACE_WITH_OWNER/tokenpilot-gpt-5-6/actions/workflows/ci.yml/badge.svg)](https://github.com/REPLACE_WITH_OWNER/tokenpilot-gpt-5-6/actions/workflows/ci.yml)
+[![CI](https://github.com/Cesar-Matta/tokenpilot-gpt-5-6/actions/workflows/ci.yml/badge.svg)](https://github.com/Cesar-Matta/tokenpilot-gpt-5-6/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![OpenAPI](https://img.shields.io/badge/API-OpenAPI-6BA539.svg)](docs/api.md)
 
@@ -89,7 +89,7 @@ before production use.
 ## Server quick start
 
 ```bash
-git clone https://github.com/REPLACE_WITH_OWNER/tokenpilot-gpt-5-6.git
+git clone https://github.com/Cesar-Matta/tokenpilot-gpt-5-6.git
 cd tokenpilot-gpt-5-6
 python -m venv .venv
 . .venv/bin/activate  # Windows: .venv\Scripts\Activate.ps1
