@@ -6,11 +6,44 @@
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![OpenAPI](https://img.shields.io/badge/API-OpenAPI-6BA539.svg)](docs/api.md)
 
-TokenPilot is a production-oriented **OpenAI model router**, **LLM router**, and **token cost optimization** service for the GPT-5.6 family. It sends routine work to **GPT-5.6 Luna**, escalates nuanced work to **GPT-5.6 Terra**, and reserves **GPT-5.6 Sol** for difficult or high-risk requests.
+## Choose what you want to install
+
+TokenPilot contains two separate products. You can install either one without installing the other.
+
+| Product | What it does | Requirements | OpenAI API key |
+|---|---|---|---:|
+| **TokenPilot Skill** | Gives Codex an explainable workflow for recommending Luna, Terra, or Sol | Copy one folder | **Not required** |
+| **TokenPilot Server** | Routes and executes real API requests automatically | Python or Docker | **Required only for execution** |
+
+They are physically separated:
+
+```text
+skills/tokenpilot-router/   # standalone skill: copy only this folder
+app/                        # optional FastAPI server
+config/                     # optional server policy and pricing
+Dockerfile                  # optional server deployment
+```
+
+### I only want the Codex skill
+
+Install only [`skills/tokenpilot-router`](skills/tokenpilot-router). Do **not** install Python dependencies, create an `.env` file, start Docker, or configure `OPENAI_API_KEY`.
+
+Read the [standalone Codex installation guide](docs/install-skill.md). After installation, invoke:
+
+```text
+$tokenpilot-router
+```
+
+> [!IMPORTANT]
+> The standalone skill provides routing guidance inside Codex. It does not call the OpenAI API and cannot silently change the model powering the current Codex conversation. The optional server performs actual automatic routing for applications and workflows.
+
+### I want automatic API routing
+
+Install the server described in [Server quick start](#server-quick-start). It is a production-oriented **OpenAI model router**, **LLM router**, and **token cost optimization** service. It sends routine API work to **GPT-5.6 Luna**, escalates nuanced work to **GPT-5.6 Terra**, and reserves **GPT-5.6 Sol** for difficult or high-risk requests.
 
 It is independent software and is not affiliated with, endorsed by, or sponsored by OpenAI.
 
-## Why TokenPilot?
+## Why the server?
 
 - Default to the economical model without hiding the decision.
 - Use complexity, risk, confidence, context size, task type, and domain as routing signals.
@@ -29,7 +62,7 @@ It is independent software and is not affiliated with, endorsed by, or sponsored
 
 The versioned catalog uses OpenAI's published standard pricing from **2026-07-30**, including short- and long-context rates, cached input, cache writes, and output. Regional processing, non-standard service tiers, and tool fees are intentionally excluded. Review [`config/models.yaml`](config/models.yaml) before relying on estimates in a live environment. See the [official pricing page](https://developers.openai.com/api/docs/pricing).
 
-## Quick start
+## Server quick start
 
 ```bash
 git clone https://github.com/REPLACE_WITH_OWNER/tokenpilot-gpt-5-6.git
@@ -98,9 +131,9 @@ The container is non-root, read-only at runtime, capability-reduced, health-chec
 - [Python example](examples/python_client.py)
 - [Portable workflow JSON](examples/tokenpilot-workflow.json)
 
-## Reusable Codex skill
+## Standalone skill
 
-The repository includes [`skills/tokenpilot-router`](skills/tokenpilot-router), a compact skill for designing, configuring, reviewing, or operating cost-aware GPT-5.6 routing. Copy that directory into your Codex skills directory, then invoke `$tokenpilot-router`.
+The complete skill lives only in [`skills/tokenpilot-router`](skills/tokenpilot-router). That directory is self-contained and can be copied independently. See [Install only the TokenPilot skill](docs/install-skill.md).
 
 ## Public release checklist
 

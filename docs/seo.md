@@ -11,7 +11,8 @@ Set these topics:
 ```text
 openai, gpt-5-6, gpt-5-6-luna, gpt-5-6-terra, gpt-5-6-sol,
 model-router, llm-router, ai-routing, token-saver, cost-optimization,
-fastapi, responses-api, prompt-routing, ai-gateway, workflow-automation
+fastapi, responses-api, prompt-routing, ai-gateway, workflow-automation,
+codex-skill, agent-skills
 ```
 
 ## Search intent covered
@@ -22,6 +23,8 @@ fastapi, responses-api, prompt-routing, ai-gateway, workflow-automation
 - token saver for OpenAI API
 - FastAPI AI gateway
 - Responses API router
+- Codex model routing skill
+- OpenAI agent skill without API key
 
 ## Social preview
 
