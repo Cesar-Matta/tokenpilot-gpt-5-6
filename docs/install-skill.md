@@ -1,81 +1,97 @@
-# Install only the TokenPilot skill
+# Codex skill installation
 
-This installation is for people who want routing guidance inside Codex without running the TokenPilot server.
+The TokenPilot Agent Skill packages the routing policy as a self-contained
+Codex skill. It runs within the host agent's existing session and has no
+dependency on the TokenPilot API Server.
 
-## What gets installed
-
-Copy only this self-contained directory:
+## Package contents
 
 ```text
 skills/tokenpilot-router/
-├── SKILL.md
-├── agents/openai.yaml
-└── references/default-policy.md
+|-- SKILL.md
+|-- agents/
+|   `-- openai.yaml
+`-- references/
+    `-- default-policy.md
 ```
 
-You do not need:
+The directory can be copied independently from the rest of the repository.
+It requires no credentials, Python packages, container runtime, or background
+process.
 
-- `OPENAI_API_KEY`
-- Python or FastAPI
-- Docker
-- `.env`
-- the `app/` or `config/` server directories
+## Installation scope
 
-## Install for your Codex user
+Codex discovers skills from standard filesystem locations:
 
-Codex loads personal skills from `$HOME/.agents/skills`. A personal installation is available in Codex App, Codex CLI, and the Codex IDE extension.
+| Scope | Destination | Availability |
+|---|---|---|
+| Personal | `$HOME/.agents/skills/tokenpilot-router` | All local Codex projects |
+| Repository | `<repository>/.agents/skills/tokenpilot-router` | That repository and its subdirectories |
+
+Personal skills are available to Codex App, Codex CLI, and the Codex IDE
+extension. Repository scope is appropriate when the routing policy should be
+versioned with a specific codebase.
+
+## Personal installation
+
+Run the relevant command from the root of a cloned TokenPilot repository.
 
 ### Windows PowerShell
 
-Run these commands from the cloned TokenPilot repository:
-
 ```powershell
-$target = Join-Path $HOME ".agents\skills\tokenpilot-router"
-New-Item -ItemType Directory -Force -Path $target
-Copy-Item -Recurse -Force -Path "skills\tokenpilot-router\*" -Destination $target
+$destination = Join-Path $HOME ".agents\skills\tokenpilot-router"
+New-Item -ItemType Directory -Force -Path $destination | Out-Null
+Copy-Item "skills\tokenpilot-router\*" $destination -Recurse -Force
 ```
 
-### macOS or Linux
+### macOS and Linux
 
 ```bash
-mkdir -p "$HOME/.agents/skills/tokenpilot-router"
-cp -R skills/tokenpilot-router/. "$HOME/.agents/skills/tokenpilot-router/"
+destination="$HOME/.agents/skills/tokenpilot-router"
+mkdir -p "$destination"
+cp -R skills/tokenpilot-router/. "$destination/"
 ```
 
-Codex normally detects skill changes automatically. Restart Codex if the skill does not appear.
+## Repository installation
 
-## Install for one repository only
-
-Copy the same folder to:
+Copy the package to the target repository:
 
 ```text
-YOUR_REPOSITORY/.agents/skills/tokenpilot-router/
+<repository>/.agents/skills/tokenpilot-router/
 ```
 
-This keeps the skill limited to that repository and its subdirectories.
+The destination must contain `SKILL.md` directly. Avoid introducing an extra
+nested `tokenpilot-router/tokenpilot-router` directory.
 
-## Verify it
+## Verification
 
-In Codex CLI or the Codex IDE extension, type `$` or open `/skills` and confirm that `tokenpilot-router` appears. Then invoke:
+1. Open the Codex skill selector with `/skills` or type `$` in the composer.
+2. Confirm that `tokenpilot-router` is listed.
+3. Invoke a routing assessment:
 
 ```text
-$tokenpilot-router Recommend the appropriate GPT-5.6 tier for this task.
+$tokenpilot-router Assess the appropriate GPT-5.6 tier for this task.
 ```
 
-## What standalone mode can and cannot do
+Codex detects skill changes automatically in most environments. Restart the
+client if the installed skill is not discovered.
 
-The skill can:
+## Operating boundary
 
-- inspect task complexity, risk, confidence, context, and domain;
-- recommend Luna, Terra, or Sol;
-- explain the reasoning and expected cost profile;
-- help design or review a routing policy.
+The standalone skill:
 
-The skill cannot:
+- evaluates complexity, risk, confidence, context, domain, and budget;
+- recommends Luna, Terra, or Sol with an explanation;
+- supports routing-policy design and review;
+- does not transmit prompts to the TokenPilot API Server;
+- does not require `OPENAI_API_KEY`;
+- does not change the model assigned to the current Codex session.
 
-- change the model powering the current Codex conversation;
-- make automatic OpenAI API calls;
-- enforce a real spending limit;
-- execute fallback requests.
+Automatic provider execution, cost enforcement, retries, and fallback calls
+are capabilities of the separate API Server.
 
-Those execution features belong to the separate, optional TokenPilot server.
+## Update
+
+Replace the installed directory contents with the contents of the newer
+`skills/tokenpilot-router` release, then verify that the skill remains visible
+in Codex.

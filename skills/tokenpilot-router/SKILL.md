@@ -7,16 +7,17 @@ description: Design, configure, review, or operate a cost-aware OpenAI GPT-5.6 r
 
 Use this skill to make routing decisions explainable, conservative, and measurable.
 
-## Standalone boundary
+## Execution boundary
 
-This skill is instruction-only by default:
+The skill operates as an advisory policy layer unless the caller explicitly
+provides a running TokenPilot API Server:
 
-- It does not require an OpenAI API key.
-- It does not install or start the TokenPilot server.
-- It does not read `.env` or send prompts to an external service.
-- It recommends an appropriate GPT-5.6 tier; it cannot silently change the model powering the current host conversation.
-
-Use the optional server integration only when the caller explicitly asks to route or execute requests through a running TokenPilot API.
+- Standalone operation requires no OpenAI API key or server process.
+- Do not read `.env` or transmit prompts to an external service in standalone mode.
+- Return a routing recommendation; do not claim to change the model assigned to
+  the current host session.
+- Use server endpoints only when the caller explicitly requests API integration
+  or execution.
 
 ## Workflow
 
@@ -45,7 +46,8 @@ For TokenPilot's default policy, read [references/default-policy.md](references/
 - `config/policy.yaml` for thresholds and domain floors.
 - `config/models.yaml` for model IDs and dated cost inputs.
 
-When those server files or endpoints are unavailable, continue in standalone mode using the bundled default policy. Do not ask for an API key.
+When server files or endpoints are unavailable, apply the bundled default
+policy and remain in standalone mode.
 
 ## Output format
 
